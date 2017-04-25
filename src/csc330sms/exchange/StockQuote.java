@@ -15,4 +15,5 @@ public class StockQuote {
 	public float changePercentYTD;
 	public BigDecimal high;
 	public BigDecimal low;
+	public BigDecimal open;
 }

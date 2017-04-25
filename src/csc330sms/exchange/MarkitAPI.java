@@ -1,7 +1,14 @@
 package csc330sms.exchange;
 import java.net.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.io.*;
 import java.util.*;
+
+import javax.swing.text.DateFormatter;
+
+import java.math.*;
+import csc330sms.exchange.StockQuote;
 
 // JSON Simple
 import org.json.simple.*;
@@ -11,6 +18,7 @@ import org.json.simple.parser.*;
 public class MarkitAPI {
 	
 	static final String URL_LOOKUP = "http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input={SEARCHTERM}";
+	static final String URL_QUOTE = "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol={SYMBOL}";
 	
 	/**
 	 * Searches for company information based on its name or symbol.
@@ -39,6 +47,44 @@ public class MarkitAPI {
 		}
 		
 		return companies;
+	}
+	
+	/**
+	 * Retrieves the stock quote based on the company symbol.
+	 * @param symbol
+	 * @return A StockQuote object
+	 * @throws IOException
+	 * @throws StockNotFound
+	 */
+	public StockQuote getStockQuote(String symbol) throws IOException, StockNotFound {
+		StockQuote quote = new StockQuote();
+		
+		JSONObject json = (JSONObject)getJSON(URL_QUOTE.replace("{SYMBOL}", symbol));
+		
+		Object name = json.get("Name");
+		if (name == null)
+			throw new StockNotFound();
+		
+		quote.name = name.toString();
+		
+		quote.symbol = json.get("Symbol").toString();
+		quote.lastPrice = new BigDecimal(json.get("LastPrice").toString());
+		quote.change = new BigDecimal(json.get("Change").toString());
+		quote.changePercent = Float.parseFloat(json.get("ChangePercent").toString());
+		SimpleDateFormat fmt = new SimpleDateFormat();
+		try {
+			quote.timestamp = fmt.parse(json.get("Timestamp").toString());
+		} catch (java.text.ParseException e) {
+			quote.timestamp = new Date();
+		}
+		quote.marketCap = new BigDecimal(json.get("MarketCap").toString());
+		quote.volume = new BigDecimal(json.get("Volume").toString());
+		quote.changeYTD = Float.parseFloat(json.get("ChangeYTD").toString());
+		quote.changePercentYTD = Float.parseFloat(json.get("ChangePercentYTD").toString());
+		quote.high = new BigDecimal(json.get("High").toString());
+		quote.low = new BigDecimal(json.get("Low").toString());
+		quote.open = new BigDecimal(json.get("Open").toString());
+		return quote;
 	}
 	
 	/**
@@ -81,6 +127,12 @@ public class MarkitAPI {
 			this.name = name;
 			this.symbol = symbol;
 			this.exchange = exchange;
+		}
+	}
+	
+	public class StockNotFound extends Exception {
+		public StockNotFound() {
+			super("Error: Could not find stock based on symbol.");
 		}
 	}
 }
