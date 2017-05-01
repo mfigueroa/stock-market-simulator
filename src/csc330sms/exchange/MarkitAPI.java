@@ -53,10 +53,9 @@ public class MarkitAPI {
 	 * Retrieves the stock quote based on the company symbol.
 	 * @param symbol
 	 * @return A StockQuote object
-	 * @throws IOException
 	 * @throws StockNotFound
 	 */
-	public StockQuote getStockQuote(String symbol) throws IOException, StockNotFound {
+	public StockQuote getStockQuote(String symbol) throws StockNotFound {
 		StockQuote quote = new StockQuote();
 		
 		JSONObject json = (JSONObject)getJSON(URL_QUOTE.replace("{SYMBOL}", symbol));
@@ -84,6 +83,7 @@ public class MarkitAPI {
 		quote.high = new BigDecimal(json.get("High").toString());
 		quote.low = new BigDecimal(json.get("Low").toString());
 		quote.open = new BigDecimal(json.get("Open").toString());
+		
 		return quote;
 	}
 	
@@ -91,30 +91,34 @@ public class MarkitAPI {
 	 * Returns a JSON object from the requested URL.
 	 * @param requestURL A string with the URL
 	 * @return A JSON Object. This could either be a JSONArray or JSONObject,
-	 * 	dependening on the expected output of the Markit API.
-	 * @throws IOException
+	 * 	depending on the expected output of the Markit API.
 	 */
-	private Object getJSON(String requestURL) throws IOException {
-		URL url = new URL(requestURL);
-		InputStreamReader isr = new InputStreamReader(url.openStream());
-		BufferedReader inStream = new BufferedReader(isr);
-		
-		StringBuffer buffer = new StringBuffer();
-		String inputLine;
-		
-		while ((inputLine = inStream.readLine()) != null) {
-			buffer.append(inputLine);
-		}
-		
-		JSONParser parser = new JSONParser();
-		Object obj;
+	private Object getJSON(String requestURL) {
+		URL url;
+		Object obj = null;
 		
 		try {
-			obj = parser.parse(buffer.toString());
-		} catch (ParseException e) {
-			obj = null;
+			url = new URL(requestURL);
+			InputStreamReader isr = new InputStreamReader(url.openStream());
+			BufferedReader inStream = new BufferedReader(isr);
+			
+			StringBuffer buffer = new StringBuffer();
+			String inputLine;
+			
+			while ((inputLine = inStream.readLine()) != null) {
+				buffer.append(inputLine);
+			}
+			
+			JSONParser parser = new JSONParser();
+			
+			try {
+				obj = parser.parse(buffer.toString());
+			} catch (ParseException e) {
+				obj = null;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		
 		return obj;
 	}
 	

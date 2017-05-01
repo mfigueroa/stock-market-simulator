@@ -1,6 +1,8 @@
 package csc330sms.broker;
 import java.math.*;
+
 import csc330sms.exchange.*;
+import csc330sms.security.*;
 import java.util.*;
 
 /**
@@ -18,19 +20,22 @@ import java.util.*;
  * 
  * Future consideration:
  * Serialization, additional constructors
+ * 
+ * TODO Commission rates
  */
 public class StockBrokerAccount {
+	/** Cash balance of account holder */
 	private BigDecimal accountBalance;
-	private final double TRANSACTION_FEE = 0.1;
+	private final double COMMISSION_FEE = 0.05;
 	private Portfolio portfolio;
 	private ArrayList<Order> pendingOrders;
 	private ArrayList<Order> orderHistory;
-	private StockExchange stockex;
+	private StockExchange exchange;
 	
-	StockBrokerAccount(BigDecimal balance) {
+	public StockBrokerAccount(BigDecimal balance) {
 		accountBalance = balance;
 		portfolio = new Portfolio();
-		stockex = new StockExchange();
+		exchange = new StockExchange();
 	}
 	
 	/**
@@ -40,17 +45,42 @@ public class StockBrokerAccount {
 	 * @param price
 	 * @param transactionType
 	 * @param duration
-	 * @return An Order.Result enumerator value.
+	 * @return An Order.Status enumerator value.
 	 */
-	int createOrder(String symbol, int quantity, BigDecimal price, int transactionType, int duration) {
+	public Order.Status createStockOrder(String symbol, int quantity, BigDecimal pricePerShare, Order.Type orderType, Order.Duration duration) 
+			throws MarkitAPI.StockNotFound, InsufficientFunds {
+		// Step 1: Verify that the account has sufficient funds to carry out BUY order
+		if (orderType == Order.Type.BUY_MARKET)
+		{
+			BigDecimal price = exchange.getLastPrice(symbol);
+			
+			// Calculate the total share cost
+			BigDecimal cost = price.multiply(new BigDecimal(quantity));
+			
+			// Calculate commission
+			cost = cost.multiply(new BigDecimal(COMMISSION_FEE)).add(cost);
+			
+			if (cost.compareTo(accountBalance) > 0) {
+				throw new InsufficientFunds();
+			}
+		}
+		
+		// TODO Check account balance for other types of orders
+		
+		Order order = exchange.createOrder(symbol, quantity, pricePerShare, orderType, duration);
+		
+		if (order.isComplete()) {
+			Stock s = (Stock)order.getSecurity();
+			portfolio.openStockPosition(s);
+		}
+		return order.getStatus();
+	}
+	
+	public int destroyOrder(int orderID) {
 		return 0;
 	}
 	
-	int destroyOrder(int orderID) {
-		return 0;
-	}
-	
-	BigDecimal getAccountBalance() {
+	public BigDecimal getAccountBalance() {
 		return accountBalance;
 	}
 	
@@ -58,7 +88,7 @@ public class StockBrokerAccount {
 	 * 
 	 * @return A list of pending orders
 	 */
-	ArrayList<Order> getPendingTransactions() {
+	public ArrayList<Order> getPendingTransactions() {
 		return pendingOrders;
 	}
 	
@@ -67,21 +97,21 @@ public class StockBrokerAccount {
 	 * @param symbol The stock symbol
 	 * @return a StockQuote object
 	 */
-	StockQuote quoteStock(String symbol) {
+	public StockQuote quoteStock(String symbol) {
 		// TODO
 		return new StockQuote();
 	}
 	
-	Portfolio getPortfolio() {
+	public Portfolio getPortfolio() {
 		return portfolio;
 	}
 	
-	BigDecimal getNetGainLoss() {
+	public BigDecimal getNetGainLoss() {
 		// TODO
 		return new BigDecimal(0);
 	}
 	
-	ArrayList<Order> getOrderHistory() {
+	public ArrayList<Order> getOrderHistory() {
 		return orderHistory;
 	}
 	
@@ -89,17 +119,23 @@ public class StockBrokerAccount {
 	 * 
 	 * @return The sum of the cash value of all positions.
 	 */
-	BigDecimal getEquityValue() {
+	public BigDecimal getEquityValue() {
 		// TODO
-		return new BigDecimal(0);
+		return portfolio.getEquityValue();
 	}
 	
 	/**
 	 * 
 	 * @return The sum of cash balance and equity value.
 	 */
-	BigDecimal getAccountValue() {
+	public BigDecimal getAccountValue() {
 		// TODO
 		return new BigDecimal(0);
+	}
+	
+	public class InsufficientFunds extends Exception {
+		public InsufficientFunds() {
+			super("Your account balance does not have sufficient funds to carry out this transaction.");
+		}
 	}
 }

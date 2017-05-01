@@ -1,6 +1,8 @@
 package csc330sms;
 import java.util.*;
+import csc330sms.broker.*;
 import java.io.Console;
+import java.math.*;
 
 /**
  * 
@@ -19,6 +21,7 @@ public class ApplicationLoader {
 	
 	public void runLoop() {
 		System.out.println("CSC 330 Stock Market Simulator\n");
+
 		Scanner keyboard = new Scanner(System.in);
 		boolean run = true;
 		
@@ -44,99 +47,26 @@ public class ApplicationLoader {
 			else if (command == null) {
 				System.out.println("Command not found.");
 			}
+			else {
+				CommandFramework cmd = (CommandFramework)command.get(1);
+				cmd.run(input.substring(cmdInput[0].length() + 1));
+			}
 			
 		} while (run);
 		
 	}
-
-	
-	/*
-	 * CommandFramework is an extend-able class that provides a framework for creating
-	 * commands. ApplicationLoader will load child classes of CommandFramework.
-	 */
-	class CommandFramework {
-		private String name;
-		private String description;
-		
-		private List<CommandArgument> optionalArguments;
-		private List<CommandArgument> positionalArguments;
-		
-		public String getName() {
-			return name;
-		}
-		
-		public String getDescription() {
-			return description;
-		}
-		
-		/**
-		 * This is the body of the command. It checks for valid arguments, and executes 
-		 * the operation. The output is returned stdout.
-		 * 
-		 * [Invariants]
-		 * @param	arguments The user input arguments
-		 * @return	N/A
-		 */
-		public boolean run(String arguments) {
-			// Break down arguments into optionalArguments and positionalArguments
-			// using substrings.
-			// ...
-			// raise InvalidArgument exception if arguments are invalid
-			
-			return true;
-		}
-		
-		/**
-		 * This class is a descriptive representation of a command argument. Its responsibility 
-		 * is to describe the argument and its function, as well as provide input validation.
-		 * @author m
-		 *
-		 */
-		class CommandArgument {
-			private String name;
-			private String description;
-			
-			public String getName() {
-				return name;
-			}
-			
-			public String getDescription() {
-				return description;
-			}
-			
-			public boolean validateArgument() {
-				return true;
-			}	
-		}
-		
-		/** 
-		 * 
-		 * @return	the list of command arguments that are positional (required)
-		 */
-		List<CommandArgument> getPositionalArguments() {
-			return positionalArguments;
-		}
-		
-		
-		/**
-		 * 
-		 * @return	the list of optional command arguments
-		 */
-		List<CommandArgument> getOptionalArguments() {
-			return positionalArguments;
-		}
-	}
 	
 	ApplicationLoader() {
+		StockBrokerAccount sba = new StockBrokerAccount(new BigDecimal(10000));
+		
 		commandTable = new HashMap<String, ArrayList<Object>>();
 		
 		// EXAMPLE: Suppose we have a command that extends CommandFramework
-		CommandFramework buy = new CommandFramework();
-		
-		ArrayList<Object> buyCmd = new ArrayList<Object>();
-		buyCmd.add("buy");
-		buyCmd.add(buy);
-		commandTable.put("buy", buyCmd);
+		CommandFramework buy = new BuyCommand(sba);
+		ArrayList<Object> buyCmdMeta = new ArrayList<Object>();
+		buyCmdMeta.add("buy");
+		buyCmdMeta.add(buy);
+		commandTable.put("buy", buyCmdMeta);
 		// END EXAMPLE
 	}
 
