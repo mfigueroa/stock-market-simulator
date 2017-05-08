@@ -60,6 +60,10 @@ public class Order {
 		return quantity;
 	}
 	
+	/**
+	 * The price that the order will be executed on.
+	 * @return
+	 */
 	public BigDecimal getPrice() {
 		return price;
 	}

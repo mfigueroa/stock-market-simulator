@@ -56,4 +56,9 @@ public class StockExchange {
 		StockQuote quote = api.getStockQuote(symbol);
 		return quote.lastPrice;
 	}
+	
+	public StockQuote getStockQuote(String symbol) throws MarkitAPI.StockNotFound {
+		StockQuote quote = api.getStockQuote(symbol);
+		return quote;
+	}
 }

@@ -75,6 +75,8 @@ public class MarkitAPI {
 			quote.timestamp = fmt.parse(json.get("Timestamp").toString());
 		} catch (java.text.ParseException e) {
 			quote.timestamp = new Date();
+		} catch (java.lang.NullPointerException e) {
+			quote.timestamp = new Date();
 		}
 		quote.marketCap = new BigDecimal(json.get("MarketCap").toString());
 		quote.volume = new BigDecimal(json.get("Volume").toString());

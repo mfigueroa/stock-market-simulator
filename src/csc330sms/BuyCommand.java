@@ -8,6 +8,7 @@ import csc330sms.exchange.Order;
 import csc330sms.exchange.MarkitAPI.StockNotFound;
 
 import java.math.*;
+import java.text.NumberFormat;
 
 public class BuyCommand extends CommandFramework {
 	
@@ -18,7 +19,7 @@ public class BuyCommand extends CommandFramework {
 		this.addPositionalArgument("order type", "The type of order (market, limit, or stop)");
 	}
 	
-	public boolean run(String arguments) {
+	public boolean run(String arguments) throws InvalidArgument {
 		// Return control of the program to ApplicationLoader
 		if (!super.run(arguments)) return false;
 		
@@ -30,19 +31,22 @@ public class BuyCommand extends CommandFramework {
 		// TODO Parse order type
 		
 		try {
-			Order.Status result = sba.createStockOrder(symbol, quantity, new BigDecimal("0"), Order.Type.BUY_MARKET, Order.Duration.DAY_ORDER);
-			if (result == Order.Status.COMPLETE) {
+			Order result = sba.createStockOrder(symbol, quantity, new BigDecimal("0"), Order.Type.BUY_MARKET, Order.Duration.DAY_ORDER);
+			if (result.isComplete()) {
 				// TODO Display portfolio summary
 				System.out.println("Congratulations. Your order has been processed successfully.");
-				System.out.println("Your new account equity value: "+ sba.getEquityValue());
+				System.out.println("Your new account equity value: " + NumberFormat.getCurrencyInstance().format(sba.getEquityValue()));
+				System.out.println("Your new cash balance is: " + NumberFormat.getCurrencyInstance().format(sba.getAccountBalance()));
+				
+				System.out.println("\nORDER SUMMARY\n");
+				System.out.printf("%-10s: %-5d\n", "SHARES", result.getQuantity());
+				System.out.printf("%-10s: %-5s\n", "EQUITY", NumberFormat.getCurrencyInstance().format(result.getSecurity().getValue()));
 			}
 			// TODO Display other outcomes
 		} catch (InsufficientFunds e) {
-			// TODO User friendly output
-			e.printStackTrace();
+			System.out.println("You have insufficient funds to carry out this order.");
 		} catch (StockNotFound e) {
-			// TODO User friendly output
-			e.printStackTrace();
+			System.out.println("The stock symbol that you provided could not be found.");
 		}
 		return true;
 	}

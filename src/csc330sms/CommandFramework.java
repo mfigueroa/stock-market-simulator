@@ -1,5 +1,6 @@
 package csc330sms;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import csc330sms.broker.*;
 
@@ -13,6 +14,7 @@ class CommandFramework {
 		
 		private ArrayList<CommandArgument> optionalArguments;
 		private ArrayList<CommandArgument> positionalArguments;
+		private HashMap<String, Object> subCommands;
 		
 		protected StockBrokerAccount sba;
 		
@@ -23,6 +25,7 @@ class CommandFramework {
 		 */
 		public CommandFramework(StockBrokerAccount sba) {
 			this.sba = sba;
+			this.subCommands = null;
 			this.optionalArguments = new ArrayList<CommandArgument>();
 			this.positionalArguments = new ArrayList<CommandArgument>();
 		}
@@ -47,10 +50,21 @@ class CommandFramework {
 		 * @param	arguments The user input arguments
 		 * @return	N/A
 		 */
-		public boolean run(String arguments) {
+		public boolean run(String arguments) throws InvalidArgument {
 			// Break down arguments into optionalArguments and positionalArguments
 			// using substrings.
-			String[] posArgs = arguments.split(" ");
+			String[] posArgs = null;
+			
+			// If positional arguments are required, return an exception
+			if (!positionalArguments.isEmpty() && arguments == null)
+				throw new InvalidArgument("No argument provided.");
+			
+			if (arguments != null)
+				posArgs = arguments.split(" ");
+			
+			if (subCommands != null) {
+				// TODO
+			}
 			
 			if (posArgs.length < positionalArguments.size()) {
 				System.out.println("You did not provide sufficient arguments.");
@@ -63,6 +77,7 @@ class CommandFramework {
 			}
 			
 			for (int i = 0; i < posArgs.length; i++) {
+				// Add argument value to the CommandArgument
 				positionalArguments.get(i).validateArgument(posArgs[i]);
 			}
 			
@@ -124,5 +139,11 @@ class CommandFramework {
 		 */
 		ArrayList<CommandArgument> getOptionalArguments() {
 			return positionalArguments;
+		}
+		
+		class InvalidArgument extends Exception {
+			InvalidArgument(String message) {
+				super(message);
+			}
 		}
 	}

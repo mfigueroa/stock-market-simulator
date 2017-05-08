@@ -1,5 +1,8 @@
 package csc330sms;
 import java.util.*;
+
+import org.jfree.ui.RefineryUtilities;
+
 import csc330sms.broker.*;
 import java.io.Console;
 import java.math.*;
@@ -18,6 +21,13 @@ public class ApplicationLoader {
 	 * The second object in ArrayList should be an instance of the command class.
 	 */
 	HashMap<String, ArrayList<Object>> commandTable;
+	
+	public void addCommand(String token, Object command) {
+		ArrayList<Object> meta = new ArrayList<Object>();
+		meta.add(token);
+		meta.add(command);
+		commandTable.put(token, meta);
+	}
 	
 	public void runLoop() {
 		System.out.println("CSC 330 Stock Market Simulator\n");
@@ -48,8 +58,16 @@ public class ApplicationLoader {
 				System.out.println("Command not found.");
 			}
 			else {
-				CommandFramework cmd = (CommandFramework)command.get(1);
-				cmd.run(input.substring(cmdInput[0].length() + 1));
+				try {
+					CommandFramework cmd = (CommandFramework)command.get(1);
+					if (cmdInput.length > 1)
+						cmd.run(input.substring(cmdInput[0].length() + 1));
+					else
+						cmd.run(null);
+				} catch (CommandFramework.InvalidArgument e) {
+					// TODO user-friendly error message
+					e.printStackTrace();
+				}
 			}
 			
 		} while (run);
@@ -58,16 +76,11 @@ public class ApplicationLoader {
 	
 	ApplicationLoader() {
 		StockBrokerAccount sba = new StockBrokerAccount(new BigDecimal(10000));
-		
 		commandTable = new HashMap<String, ArrayList<Object>>();
 		
-		// EXAMPLE: Suppose we have a command that extends CommandFramework
-		CommandFramework buy = new BuyCommand(sba);
-		ArrayList<Object> buyCmdMeta = new ArrayList<Object>();
-		buyCmdMeta.add("buy");
-		buyCmdMeta.add(buy);
-		commandTable.put("buy", buyCmdMeta);
-		// END EXAMPLE
+		addCommand("buy", new BuyCommand(sba));
+		addCommand("account", new AccountCommand(sba));
+		addCommand("quote", new QuoteCommand(sba));
 	}
 
 	public static void main(String[] args) {	

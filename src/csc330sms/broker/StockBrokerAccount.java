@@ -47,15 +47,17 @@ public class StockBrokerAccount {
 	 * @param duration
 	 * @return An Order.Status enumerator value.
 	 */
-	public Order.Status createStockOrder(String symbol, int quantity, BigDecimal pricePerShare, Order.Type orderType, Order.Duration duration) 
+	public Order createStockOrder(String symbol, int quantity, BigDecimal pricePerShare, Order.Type orderType, Order.Duration duration) 
 			throws MarkitAPI.StockNotFound, InsufficientFunds {
+		// Cost of the order -- will be subtracted from the account balance if order is completed
+		BigDecimal cost = null;
 		// Step 1: Verify that the account has sufficient funds to carry out BUY order
 		if (orderType == Order.Type.BUY_MARKET)
 		{
 			BigDecimal price = exchange.getLastPrice(symbol);
 			
 			// Calculate the total share cost
-			BigDecimal cost = price.multiply(new BigDecimal(quantity));
+			cost = price.multiply(new BigDecimal(quantity));
 			
 			// Calculate commission
 			cost = cost.multiply(new BigDecimal(COMMISSION_FEE)).add(cost);
@@ -72,8 +74,9 @@ public class StockBrokerAccount {
 		if (order.isComplete()) {
 			Stock s = (Stock)order.getSecurity();
 			portfolio.openStockPosition(s);
+			accountBalance = accountBalance.subtract(cost);
 		}
-		return order.getStatus();
+		return order;
 	}
 	
 	public int destroyOrder(int orderID) {
@@ -97,9 +100,8 @@ public class StockBrokerAccount {
 	 * @param symbol The stock symbol
 	 * @return a StockQuote object
 	 */
-	public StockQuote quoteStock(String symbol) {
-		// TODO
-		return new StockQuote();
+	public StockQuote quoteStock(String symbol) throws MarkitAPI.StockNotFound {
+		return exchange.getStockQuote(symbol);
 	}
 	
 	public Portfolio getPortfolio() {
