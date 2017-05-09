@@ -3,6 +3,7 @@ package csc330sms;
 import java.util.*;
 import csc330sms.CommandFramework;
 import csc330sms.broker.*;
+import csc330sms.broker.Portfolio.StockPositionNotFound;
 import csc330sms.broker.StockBrokerAccount.InsufficientFunds;
 import csc330sms.exchange.Order;
 import csc330sms.exchange.MarkitAPI.StockNotFound;
@@ -14,9 +15,10 @@ public class BuyCommand extends CommandFramework {
 	
 	public BuyCommand(StockBrokerAccount sba) {
 		super(sba);
-		this.addPositionalArgument("symbol", "The stock ticker.");
-		this.addPositionalArgument("quantity", "The amount of shares.");
-		this.addPositionalArgument("order type", "The type of order (market, limit, or stop)");
+		this.addPositionalArgument("symbol", "The stock ticker.", ValidationType.STRING);
+		this.addPositionalArgument("quantity", "The amount of shares.", ValidationType.INT);
+		// TODO Add limit and stop orders
+		//this.addPositionalArgument("order type", "The type of order (market, limit, or stop)");
 	}
 	
 	public boolean run(String arguments) throws InvalidArgument {
@@ -24,9 +26,9 @@ public class BuyCommand extends CommandFramework {
 		if (!super.run(arguments)) return false;
 		
 		ArrayList<CommandArgument> args = this.getPositionalArguments();
-		String symbol = args.get(0).getArgument();
-		int quantity = Integer.parseInt(args.get(1).getArgument());
-		String orderType = args.get(2).getArgument();
+		String symbol = (String)args.get(0).getArgument();
+		int quantity = (int)args.get(1).getArgument();
+		//String orderType = args.get(2).getArgument();
 		
 		// TODO Parse order type
 		
@@ -47,6 +49,9 @@ public class BuyCommand extends CommandFramework {
 			System.out.println("You have insufficient funds to carry out this order.");
 		} catch (StockNotFound e) {
 			System.out.println("The stock symbol that you provided could not be found.");
+		} catch (StockPositionNotFound e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return true;
 	}

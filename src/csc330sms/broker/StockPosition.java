@@ -20,5 +20,11 @@ public class StockPosition extends Position {
 		BigDecimal newPrice = s.getValue().add(this.getValue()).divide(new BigDecimal(newQuantity), 2, RoundingMode.HALF_EVEN);
 		this.security = new Stock(security.getSymbol(), newPrice, newQuantity, security.getCompany());
 	}
-
+	
+	/**
+	 * Reduces a given position. UNDEFINED BEHAVIOR if quantity is equal to or greater than the number of securities.
+	 */
+	public void reduce(int quantity) {
+		security = new Stock(security.getSymbol(), security.getPrice(), security.getQuantity() - quantity, security.getCompany());
+	}
 }

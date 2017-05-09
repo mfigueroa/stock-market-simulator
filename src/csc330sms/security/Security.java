@@ -5,9 +5,13 @@ import java.math.*;
  * Security is the generalization of stocks, options, bonds, and any other stock market instrument.
  * It is a blueprint for how stocks (and other instruments) should be implemented.
  * 
+ * IMPORTANT: This is an immutable class.
+ * 
  */
 public abstract class Security {
+	// The price of the individual share, option, etc.
 	private BigDecimal price;
+	// The number of securities
 	private int quantity;
 	private String company;
 	private String symbol;
@@ -25,6 +29,10 @@ public abstract class Security {
 	
 	public int getQuantity() {
 		return quantity;
+	}
+	
+	public BigDecimal getPrice() {
+		return price;
 	}
 	
 	public String getCompany() {

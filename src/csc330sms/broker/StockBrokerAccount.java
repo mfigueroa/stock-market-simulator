@@ -1,6 +1,7 @@
 package csc330sms.broker;
 import java.math.*;
 
+import csc330sms.broker.Portfolio.StockPositionNotFound;
 import csc330sms.exchange.*;
 import csc330sms.security.*;
 import java.util.*;
@@ -36,6 +37,7 @@ public class StockBrokerAccount {
 		accountBalance = balance;
 		portfolio = new Portfolio();
 		exchange = new StockExchange();
+		orderHistory = new ArrayList<Order>();
 	}
 	
 	/**
@@ -48,7 +50,7 @@ public class StockBrokerAccount {
 	 * @return An Order.Status enumerator value.
 	 */
 	public Order createStockOrder(String symbol, int quantity, BigDecimal pricePerShare, Order.Type orderType, Order.Duration duration) 
-			throws MarkitAPI.StockNotFound, InsufficientFunds {
+			throws MarkitAPI.StockNotFound, InsufficientFunds, StockPositionNotFound {
 		// Cost of the order -- will be subtracted from the account balance if order is completed
 		BigDecimal cost = null;
 		// Step 1: Verify that the account has sufficient funds to carry out BUY order
@@ -67,15 +69,38 @@ public class StockBrokerAccount {
 			}
 		}
 		
+		if (orderType == Order.Type.SELL_MARKET) {
+			BigDecimal price = exchange.getLastPrice(symbol);
+			
+			// Calculate the total share cost
+			cost = price.multiply(new BigDecimal(quantity));
+			
+			// Verify that the user has the required shares
+			if (portfolio.getStockPosition(symbol).getQuantity() < quantity) {
+				throw new InsufficientFunds();
+			}
+		}
+		
 		// TODO Check account balance for other types of orders
 		
 		Order order = exchange.createOrder(symbol, quantity, pricePerShare, orderType, duration);
 		
-		if (order.isComplete()) {
+		if (order.isComplete() && orderType == Order.Type.BUY_MARKET) {
+			// Add position
 			Stock s = (Stock)order.getSecurity();
 			portfolio.openStockPosition(s);
 			accountBalance = accountBalance.subtract(cost);
+			
+			orderHistory.add(order);
+		} else if (order.isComplete() && orderType == Order.Type.SELL_MARKET) {
+			// Remove position
+			Stock s = (Stock)order.getSecurity();
+			portfolio.reduceStockPosition(s);
+			accountBalance = accountBalance.add(order.getSecurity().getValue());
+			
+			orderHistory.add(order);
 		}
+		
 		return order;
 	}
 	
@@ -104,7 +129,7 @@ public class StockBrokerAccount {
 		return exchange.getStockQuote(symbol);
 	}
 	
-	public Portfolio getPortfolio() {
+	public final Portfolio getPortfolio() {
 		return portfolio;
 	}
 	
@@ -113,7 +138,7 @@ public class StockBrokerAccount {
 		return new BigDecimal(0);
 	}
 	
-	public ArrayList<Order> getOrderHistory() {
+	public final ArrayList<Order> getOrderHistory() {
 		return orderHistory;
 	}
 	

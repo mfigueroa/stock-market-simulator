@@ -1,5 +1,7 @@
 package csc330sms.exchange;
 import java.math.*;
+import java.util.Date;
+
 import csc330sms.security.*;
 
 /**
@@ -28,6 +30,7 @@ public class Order {
 	// Price per security. This value cannot be changed after Order is created.
 	// The actual purchase price is reflected inside the security.
 	private final BigDecimal price;
+	private Date timestamp;
 	private Order.Type type;
 	private Order.Duration duration;
 	private Security security;
@@ -39,6 +42,7 @@ public class Order {
 		this.price = price;
 		this.type = orderType;
 		this.duration = duration;
+		this.timestamp = new Date();
 	}
 	
 	/**
@@ -76,19 +80,30 @@ public class Order {
 		return duration;
 	}
 	
-	// Assigns a security to this order
-	// Once a security has been assigned, it is considered complete
+	/**
+	 * Assigns a security to this order. Once a security has been assigned, it is considered complete
+	 * @param s
+	 */
 	public void setSecurity(Security s) {
 		security = s;
 		this.status = Status.COMPLETE;
 	}
 	
+	/**
+	 * The underlying security that the order was executed on. This security reflects
+	 * the final value of the order.
+	 * @return
+	 */
 	public Security getSecurity() {
 		return security;
 	}
 	
 	public Status getStatus() {
 		return this.status;
+	}
+	
+	public Date getTimestamp() {
+		return timestamp;
 	}
 	
 	/**

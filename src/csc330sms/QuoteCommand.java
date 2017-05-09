@@ -11,7 +11,7 @@ public class QuoteCommand extends CommandFramework {
 
 	public QuoteCommand(StockBrokerAccount sba) {
 		super(sba);
-		this.addPositionalArgument("symbol", "Stock symbol");
+		this.addPositionalArgument("symbol", "Stock symbol", ValidationType.STRING);
 	}
 	
 	public boolean run(String arguments) throws InvalidArgument {

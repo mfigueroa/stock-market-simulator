@@ -24,12 +24,13 @@ public class Portfolio {
 	 * @return
 	 */
 	public boolean openStockPosition(Stock s) {
-		StockPosition p = getStockPosition(s.getSymbol());
+		StockPosition p;
 		
-		if (p != null) {
+		try {
+			// Add to existing position
+			p = getStockPosition(s.getSymbol());
 			p.addTo(s);
-			return true;
-		} else {
+		} catch (StockPositionNotFound e) {
 			// Create a new position
 			p = new StockPosition(s);
 			stockPositions.add(p);
@@ -38,17 +39,49 @@ public class Portfolio {
 	}
 	
 	/**
-	 * Returns a StockPosition.
+	 * Reduces a given stock position. If quantity is equal or greater to the maximum number of
+	 * shares, the stock position is closed.
+	 * 
+	 */
+	public boolean reduceStockPosition(Stock s) throws StockPositionNotFound {
+		StockPosition p = getStockPosition(s.getSymbol());
+		if (p != null) {
+			if (s.getQuantity() >= p.getQuantity()) {
+				closeStockPosition(s);
+			} else {
+				p.reduce(s.getQuantity());
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Closes a given stock position.
+	 * @param s A given stock
+	 * @return Returns true if the position was removed. False otherwise.
+	 */
+	public boolean closeStockPosition(Stock s) {
+		for (int i = 0; i < stockPositions.size(); i ++) {
+			if (stockPositions.get(i).getSymbol().equalsIgnoreCase(s.getSymbol())) {
+				stockPositions.remove(i);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Finds a StockPosition in the portfolio for a given symbol.
 	 * @param s
 	 * @return Returns a StockPosition if found, and null otherwise.
 	 */
-	public StockPosition getStockPosition(String symbol) {
+	public StockPosition getStockPosition(String symbol) throws StockPositionNotFound {
 		for (int i = 0; i < stockPositions.size(); i++) {
-			if (stockPositions.get(i).security.getSymbol().equals(symbol)) {
+			if (stockPositions.get(i).security.getSymbol().equalsIgnoreCase(symbol)) {
 				return stockPositions.get(i);
 			}
 		}
-		return null;
+		throw new StockPositionNotFound();
 	}
 	
 	public BigDecimal getEquityValue() {
@@ -57,5 +90,13 @@ public class Portfolio {
 			sum = sum.add(stockPositions.get(i).getValue());
 		}
 		return sum;
+	}
+	
+	public final ArrayList<StockPosition> getStockPositions() {
+		return this.stockPositions;
+	}
+	
+	public class StockPositionNotFound extends Exception {
+		
 	}
 }

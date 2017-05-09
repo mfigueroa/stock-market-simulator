@@ -81,6 +81,7 @@ public class ApplicationLoader {
 		addCommand("buy", new BuyCommand(sba));
 		addCommand("account", new AccountCommand(sba));
 		addCommand("quote", new QuoteCommand(sba));
+		addCommand("sell", new SellCommand(sba));
 	}
 
 	public static void main(String[] args) {	

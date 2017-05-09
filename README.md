@@ -35,3 +35,7 @@ The development will be broken down into these 5 phases:
 ## Roadmap
 
 See our Trello group for the roadmap.
+
+## Code Philosophy
+* Always use String.equalsIgnoreCase() when comparing strings (unless otherwise necessary).
+* Defer exception handling to the object that is most responsible for the exception.

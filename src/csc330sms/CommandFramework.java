@@ -30,8 +30,8 @@ class CommandFramework {
 			this.positionalArguments = new ArrayList<CommandArgument>();
 		}
 		
-		public void addPositionalArgument(String name, String description) {
-			positionalArguments.add(new CommandArgument(name, description));
+		public void addPositionalArgument(String name, String description, ValidationType type) {
+			positionalArguments.add(new CommandArgument(name, description, type));
 		}
 		
 		public String getName() {
@@ -81,8 +81,6 @@ class CommandFramework {
 				positionalArguments.get(i).validateArgument(posArgs[i]);
 			}
 			
-			// TODO raise InvalidArgument exception if arguments are invalid
-			
 			return true;
 		}
 		
@@ -98,11 +96,13 @@ class CommandFramework {
 		class CommandArgument {
 			private String name;
 			private String description;
-			private String argument;
+			private Object argument;
+			private ValidationType type;
 			
-			public CommandArgument(String name, String description) {
+			public CommandArgument(String name, String description, ValidationType type) {
 				this.name = name;
 				this.description = description;
+				this.type = type;
 			}
 			
 			public String getName() {
@@ -113,15 +113,38 @@ class CommandFramework {
 				return description;
 			}
 			
-			public boolean validateArgument(String argument) {
-				// TODO Argument validation
-				this.argument = argument;
+			/**
+			 * Validates argument. If argument is valid, the argument is saved.
+			 * @param argument
+			 * @param type
+			 * @return
+			 * @throws InvalidArgument
+			 */
+			public boolean validateArgument(String argument) throws InvalidArgument {
+				if (type == ValidationType.STRING)
+					this.argument = (String)argument;
+				else if (type == ValidationType.INT) {
+					try {
+						this.argument = Integer.parseInt(argument);
+					} catch (java.lang.NumberFormatException e) {
+						throw new InvalidArgument("Expected integer argument.");
+					}
+				}
 				return true;
 			}
 			
-			public String getArgument() {
+			public Object getArgument() {
 				return argument;
 			}
+		}
+		
+		/**
+		 * Variable type for argument validation.
+		 * @author m
+		 *
+		 */
+		public enum ValidationType {
+			STRING, INT, BIGDECIMAL
 		}
 		
 		/** 
