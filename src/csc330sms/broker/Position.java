@@ -22,4 +22,8 @@ public abstract class Position {
 	public int getQuantity() {
 		return security.getQuantity();
 	}
+	
+	public BigDecimal getPrice() {
+		return security.getPrice();
+	}
 }

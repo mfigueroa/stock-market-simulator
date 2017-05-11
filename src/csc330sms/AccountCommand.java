@@ -6,7 +6,10 @@ import java.text.NumberFormat;
 import java.text.*;
 
 import csc330sms.CommandFramework.CommandArgument;
+import csc330sms.broker.Portfolio;
 import csc330sms.broker.StockBrokerAccount;
+import csc330sms.broker.StockPosition;
+import csc330sms.exchange.MarkitAPI;
 import csc330sms.exchange.Order;
 import csc330sms.security.Security;
 
@@ -14,7 +17,7 @@ public class AccountCommand extends CommandFramework {
 
 	public AccountCommand(StockBrokerAccount sba) {
 		super(sba);
-		this.addPositionalArgument("request", "Stock, options, cash, or summary.", ValidationType.STRING);
+		this.addPositionalArgument("request", "Stock, options, cash, summary, portfolio.", ValidationType.STRING);
 	}
 	
 	private void printAccountBalance() {
@@ -46,6 +49,32 @@ public class AccountCommand extends CommandFramework {
 		}
 	}
 	
+	private void printPortfolioSummary() {
+		Portfolio portfolio = sba.getPortfolio();
+		ArrayList<StockPosition> positions = portfolio.getStockPositions();
+		
+		try {
+			if (positions.size() == 0) {
+				System.out.println("Your portfolio is empty.");
+			} else {
+				System.out.printf("%10s %10s %10s %10s %10s\n", "TICKER", "PROFIT/LOSS", "PRICE", "QUANTITY", "EQUITY");
+				for (int i = 0; i < positions.size(); i++) {
+					StockPosition p = positions.get(i);
+					
+					BigDecimal diff = sba.getNetGainLoss(p);
+					System.out.printf("%10s %10s %10s %10s %10s\n", 
+							p.getSymbol(), 
+							NumberFormat.getCurrencyInstance().format(diff),
+							NumberFormat.getCurrencyInstance().format(p.getPrice()),
+							p.getQuantity(),
+							NumberFormat.getCurrencyInstance().format(p.getValue()));
+				}
+			}
+		} catch (MarkitAPI.StockNotFound e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public boolean run(String arguments) throws InvalidArgument {
 		// Return control of the program to ApplicationLoader
 		if (!super.run(arguments)) return false;
@@ -60,7 +89,10 @@ public class AccountCommand extends CommandFramework {
 		if (request.contains("summary")) {
 			printAccountBalance();
 			printEquityBalance();
-			
+		}
+		
+		if (request.equalsIgnoreCase("portfolio")) {
+			printPortfolioSummary();
 		}
 		
 		if (request.equalsIgnoreCase("history")) {

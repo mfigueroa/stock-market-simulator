@@ -27,7 +27,12 @@ import java.util.*;
 public class StockBrokerAccount {
 	/** Cash balance of account holder */
 	private BigDecimal accountBalance;
+	/** Cash balance available for margin trading */
+	private BigDecimal marginBalance;
 	private final double COMMISSION_FEE = 0.05;
+	private final double LEVERAGE = 3;
+	private final double INITIAL_MARGIN = .40;
+	private final double MAINTENANCE_MARGIN = .20;
 	private Portfolio portfolio;
 	private ArrayList<Order> pendingOrders;
 	private ArrayList<Order> orderHistory;
@@ -99,6 +104,10 @@ public class StockBrokerAccount {
 			accountBalance = accountBalance.add(order.getSecurity().getValue());
 			
 			orderHistory.add(order);
+		} else {
+			// Add order to list of pending orders
+			// TODO This will only matter if LIMIT/STOP orders are implemented
+			pendingOrders.add(order);
 		}
 		
 		return order;
@@ -133,9 +142,27 @@ public class StockBrokerAccount {
 		return portfolio;
 	}
 	
-	public BigDecimal getNetGainLoss() {
+	/**
+	 * Calculates the net cash gain or loss for a given stock position.
+	 * @param p
+	 * @return The net gain/loss of the position.
+	 * @throws MarkitAPI.StockNotFound
+	 */
+	public BigDecimal getNetGainLoss(StockPosition p) throws MarkitAPI.StockNotFound {
 		// TODO
-		return new BigDecimal(0);
+		BigDecimal price = exchange.getLastPrice(p.getSymbol());
+		BigDecimal diff = new BigDecimal(0);
+		
+		// Get loss/gain in cash
+		if (p.getPrice().compareTo(price) > 0) {
+			diff = p.getPrice().subtract(price);
+		} else if (p.getPrice().compareTo(price) < 0) {
+			diff = price.subtract(p.getPrice());
+		} else {
+			return new BigDecimal(0);
+		}
+		
+		return diff.multiply(new BigDecimal(p.getQuantity()));
 	}
 	
 	public final ArrayList<Order> getOrderHistory() {
@@ -158,6 +185,10 @@ public class StockBrokerAccount {
 	public BigDecimal getAccountValue() {
 		// TODO
 		return new BigDecimal(0);
+	}
+	
+	public BigDecimal getMarginBalance() {
+		return marginBalance;
 	}
 	
 	public class InsufficientFunds extends Exception {
