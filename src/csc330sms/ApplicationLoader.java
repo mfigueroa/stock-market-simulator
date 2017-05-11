@@ -57,6 +57,7 @@ public class ApplicationLoader {
 		System.out.println(" ___) | |  | |___) |");
 		System.out.println("|____/|_|  |_|____/ ");
 		System.out.println("Stock Market Simulator\n");
+		System.out.println("Type \"help\" for a list of commands.\n");
 
 		Scanner keyboard = new Scanner(System.in);
 		boolean run = true;
@@ -116,6 +117,7 @@ public class ApplicationLoader {
 		addCommand("quote", new QuoteCommand(sba));
 		addCommand("sell", new SellCommand(sba));
 		addCommand("find", new FindCommand(sba));
+		addCommand("help", new HelpCommand(commandTable));
 	}
 
 	public static void main(String[] args) {	

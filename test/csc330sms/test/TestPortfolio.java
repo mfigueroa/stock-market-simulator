@@ -2,6 +2,7 @@ package csc330sms.test;
 
 import static org.junit.Assert.*;
 import csc330sms.broker.*;
+import csc330sms.broker.Portfolio.StockPositionNotFound;
 import csc330sms.exchange.*;
 import csc330sms.security.*;
 import java.math.*;
@@ -17,13 +18,15 @@ public class TestPortfolio {
 		Stock s2 = new Stock("AAPL", new BigDecimal(150), 50, "Apple Inc");
 		
 		portfolio.openStockPosition(s1);
-		
-		assert(portfolio.getStockPosition("AAPL").getValue().equals(new BigDecimal("2000")));
-		
-		portfolio.openStockPosition(s2);
-
-		assert(portfolio.getStockPosition("AAPL").getValue().equals(new BigDecimal("9499.70")));
-
+		try {
+			assert(portfolio.getStockPosition("AAPL").getValue().equals(new BigDecimal("2000")));
+			
+			portfolio.openStockPosition(s2);
+	
+			assert(portfolio.getStockPosition("AAPL").getValue().equals(new BigDecimal("9499.70")));
+		} catch (StockPositionNotFound e) {
+			assert(false);
+		}
 	}
 
 }

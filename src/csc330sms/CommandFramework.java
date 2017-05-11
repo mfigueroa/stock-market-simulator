@@ -76,7 +76,7 @@ public class CommandFramework {
 		public boolean run(String arguments) throws InvalidArgument {
 			// Break down arguments into optionalArguments and positionalArguments
 			// using substrings.
-			ArrayList<String> posArgs = null;
+			ArrayList<String> posArgs = new ArrayList<String>();
 			
 			// If positional arguments are required, return an exception
 			if (!positionalArguments.isEmpty() && arguments == null)
