@@ -27,4 +27,12 @@ public class StockPosition extends Position {
 	public void reduce(int quantity) {
 		security = new Stock(security.getSymbol(), security.getPrice(), security.getQuantity() - quantity, security.getCompany());
 	}
+	
+	/**
+	 * Returns the underlying security's price.
+	 * @return
+	 */
+	public BigDecimal getPrice() {
+		return security.getPrice();
+	}
 }

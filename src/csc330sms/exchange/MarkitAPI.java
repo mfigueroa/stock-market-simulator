@@ -19,6 +19,7 @@ public class MarkitAPI {
 	
 	static final String URL_LOOKUP = "http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input={SEARCHTERM}";
 	static final String URL_QUOTE = "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol={SYMBOL}";
+	static final String URL_INTERDATA = "http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters={JSON_STRING}";
 	
 	/**
 	 * Searches for company information based on its name or symbol.
@@ -87,6 +88,29 @@ public class MarkitAPI {
 		quote.open = new BigDecimal(json.get("Open").toString());
 		
 		return quote;
+	}
+	
+	public Object getHistoricalData(String symbol) {
+		JSONObject obj = new JSONObject();
+		obj.put("Normalized", "false");
+		obj.put("NumberOfDays", "5");
+		obj.put("DataPeriod", "Day");
+		
+		JSONObject elem = new JSONObject();
+		elem.put("Symbol", symbol);
+		elem.put("Type", "price");
+		JSONArray params = new JSONArray();
+		params.add("ohlc");
+		elem.put("Params", params);
+		
+		JSONArray list = new JSONArray();
+		list.add(elem);
+		
+		obj.put("Elements", list);
+		String url = URL_INTERDATA.replace("{JSON_STRING}", obj.toJSONString());
+		JSONObject resp = (JSONObject)getJSON(url);
+		
+		return resp;
 	}
 	
 	/**

@@ -1,5 +1,8 @@
 package csc330sms.exchange;
+import java.io.IOException;
 import java.math.*;
+
+import csc330sms.exchange.MarkitAPI.CompanyInfo;
 import csc330sms.exchange.MarkitAPI.StockNotFound;
 import java.util.*;
 import csc330sms.security.*;
@@ -60,5 +63,17 @@ public class StockExchange {
 	public StockQuote getStockQuote(String symbol) throws MarkitAPI.StockNotFound {
 		StockQuote quote = api.getStockQuote(symbol);
 		return quote;
+	}
+	
+	public ArrayList<CompanyInfo> getCompanyInfo(String company) {
+		MarkitAPI api = new MarkitAPI();
+		ArrayList<CompanyInfo> results = new ArrayList<CompanyInfo>();
+		try {
+			results = api.getCompanyInfo(company);
+		} catch (IOException e) {
+			// TODO Handle this
+			e.printStackTrace();
+		}
+		return results;
 	}
 }

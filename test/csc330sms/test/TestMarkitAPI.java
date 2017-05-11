@@ -2,6 +2,8 @@ package csc330sms.test;
 
 import static org.junit.Assert.*;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.junit.Test;
 
 import java.util.*;
@@ -23,6 +25,20 @@ public class TestMarkitAPI {
 		MarkitAPI api = new MarkitAPI();
 		StockQuote quote = api.getStockQuote("AAPL");
 		assert(quote.name.equals("Apple Inc"));
+	}
+	
+	/**
+	 * Test the InteractiveChart endpoint.
+	 * @throws IOException
+	 */
+	@Test
+	public void testInteractiveChart() throws IOException {
+		MarkitAPI api = new MarkitAPI();
+		JSONObject obj = (JSONObject)api.getHistoricalData("AAPL");
+		String some = obj.toString();
+		JSONArray elems = (JSONArray)obj.get("Elements");
+		JSONObject elems2 = (JSONObject)elems.get(0);
+		assert(elems2.get("Type").toString().equals("price"));
 	}
 
 }

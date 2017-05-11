@@ -1,5 +1,7 @@
 package csc330sms;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.regex.*;
 import java.util.HashMap;
 import java.util.List;
 import csc330sms.broker.*;
@@ -8,11 +10,14 @@ import csc330sms.broker.*;
  * CommandFramework is an extend-able class that provides a framework for creating
  * commands. ApplicationLoader will load child classes of CommandFramework.
  */
-class CommandFramework {
+public class CommandFramework {
 		private String name;
 		private String description;
 		
-		private ArrayList<CommandArgument> optionalArguments;
+		/**
+		 * Optional arguments object is a map since we can't infer which parameter each element belongs to.
+		 */
+		private HashMap<String, CommandArgument> optionalArguments;
 		private ArrayList<CommandArgument> positionalArguments;
 		private HashMap<String, Object> subCommands;
 		
@@ -26,13 +31,31 @@ class CommandFramework {
 		public CommandFramework(StockBrokerAccount sba) {
 			this.sba = sba;
 			this.subCommands = null;
-			this.optionalArguments = new ArrayList<CommandArgument>();
+			this.optionalArguments = new HashMap<String, CommandArgument>();
 			this.positionalArguments = new ArrayList<CommandArgument>();
 		}
 		
+		/**
+		 * Adds an optional PARAMETER that can be optionally supplied to the command.
+		 * @param name
+		 * @param description
+		 * @param type
+		 */
+		public void addOptionalArgument(String name, String description, ValidationType type) {
+			optionalArguments.put(name, new CommandArgument(name, description, type));
+		}
+		
+		/**
+		 * Add a required (positional) PARAMETER that must be supplied to the command.
+		 * @param name
+		 * @param description
+		 * @param type
+		 */
 		public void addPositionalArgument(String name, String description, ValidationType type) {
 			positionalArguments.add(new CommandArgument(name, description, type));
 		}
+		
+		
 		
 		public String getName() {
 			return name;
@@ -53,32 +76,59 @@ class CommandFramework {
 		public boolean run(String arguments) throws InvalidArgument {
 			// Break down arguments into optionalArguments and positionalArguments
 			// using substrings.
-			String[] posArgs = null;
+			ArrayList<String> posArgs = null;
 			
 			// If positional arguments are required, return an exception
 			if (!positionalArguments.isEmpty() && arguments == null)
 				throw new InvalidArgument("No argument provided.");
 			
+			// Verify that we have arguments
 			if (arguments != null)
-				posArgs = arguments.split(" ");
+				posArgs = new ArrayList<String>(Arrays.asList(arguments.split(" ")));
 			
 			if (subCommands != null) {
-				// TODO
+				// TODO Subcommands
 			}
 			
-			if (posArgs.length < positionalArguments.size()) {
+			// Catch positional and optional arguments
+			// Capture groups: parameter, argument
+			Pattern p = Pattern.compile("--([a-zA-Z0-9])+=([a-zA-Z0-9])+");
+			
+			// Temporary list to store optional arguments that will be removed from posArgs
+			ArrayList<String> optionalArgs = new ArrayList<String>();
+			
+			for (int i = 0; i < posArgs.size(); i++) {
+				Matcher m = p.matcher(posArgs.get(i));
+				if (m.find()) {
+					optionalArguments.get(m.group(0)).validateArgument(m.group(1));
+					optionalArgs.add(posArgs.get(i));
+				}
+			}
+			
+			// Remove optional arguments from posArgs
+			for (int i = 0; i < optionalArgs.size(); i++) {
+				for (int j = 0; i < posArgs.size(); j++) {
+					if (posArgs.get(i) == optionalArgs.get(i)) {
+						// Remove optional argument
+						posArgs.remove(i);
+					}
+				}
+			}
+			
+			if (posArgs.size() < positionalArguments.size()) {
 				System.out.println("You did not provide sufficient arguments.");
 				return false;
 			}
 			
-			if (posArgs.length > positionalArguments.size()) {
+			if (posArgs.size() > positionalArguments.size()) {
 				System.out.println("You provided additional positional arguments that are not valid.");
 				return false;
 			}
 			
-			for (int i = 0; i < posArgs.length; i++) {
+			// Order of arguments is implied
+			for (int i = 0; i < posArgs.size(); i++) {
 				// Add argument value to the CommandArgument
-				positionalArguments.get(i).validateArgument(posArgs[i]);
+				positionalArguments.get(i).validateArgument(posArgs.get(i));
 			}
 			
 			return true;
@@ -155,16 +205,15 @@ class CommandFramework {
 			return positionalArguments;
 		}
 		
-		
 		/**
 		 * 
 		 * @return	the list of optional command arguments
 		 */
-		ArrayList<CommandArgument> getOptionalArguments() {
-			return positionalArguments;
+		HashMap<String, CommandArgument> getOptionalArguments() {
+			return optionalArguments;
 		}
 		
-		class InvalidArgument extends Exception {
+		public class InvalidArgument extends Exception {
 			InvalidArgument(String message) {
 				super(message);
 			}

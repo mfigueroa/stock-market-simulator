@@ -3,6 +3,7 @@ import java.math.*;
 
 import csc330sms.broker.Portfolio.StockPositionNotFound;
 import csc330sms.exchange.*;
+import csc330sms.exchange.MarkitAPI.CompanyInfo;
 import csc330sms.security.*;
 import java.util.*;
 
@@ -189,6 +190,16 @@ public class StockBrokerAccount {
 	
 	public BigDecimal getMarginBalance() {
 		return marginBalance;
+	}
+	
+	/**
+	 * Returns a list of companies found based on the search term.
+	 * @param company The company name search term
+	 * @return
+	 * @throws MarkitAPI.StockNotFound
+	 */
+	public ArrayList<CompanyInfo> getCompanyInfo(String company) {
+		return exchange.getCompanyInfo(company);
 	}
 	
 	public class InsufficientFunds extends Exception {
