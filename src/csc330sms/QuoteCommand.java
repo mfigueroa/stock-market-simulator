@@ -28,8 +28,7 @@ public class QuoteCommand extends CommandFramework {
 			System.out.printf("%-10s: %-5s\n", "LAST PRICE", NumberFormat.getCurrencyInstance().format(quote.lastPrice));
 			System.out.printf("%-10s: %-5.2f%%\n", "CHANGE", quote.changePercent);
 		} catch (MarkitAPI.StockNotFound e) {
-			// TODO User-friendly output
-			e.printStackTrace();
+			System.out.println("The stock symbol was not found.");
 		}
 		
 		return true;

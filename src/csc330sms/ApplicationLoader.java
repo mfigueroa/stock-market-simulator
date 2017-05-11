@@ -1,10 +1,7 @@
 package csc330sms;
 import java.util.*;
 
-import org.jfree.ui.RefineryUtilities;
-
 import csc330sms.broker.*;
-import java.io.Console;
 import java.math.*;
 
 /**
@@ -62,20 +59,13 @@ public class ApplicationLoader {
 		Scanner keyboard = new Scanner(System.in);
 		boolean run = true;
 		
-		// Main command loop
 		do {
 			System.out.print("> ");
 			String input = keyboard.nextLine();
 			String[] cmdInput = input.split(" ");
 			
-			// Attempt to find command inputed by user
-			//ArrayList<Object> command = commandTable.get(cmdInput[0]);
-			
 			if (input.isEmpty()) {
 				continue;
-			}
-			else if (input.equals("version")) {
-				System.out.println("You are running version 0.1a.");
 			}
 			else if (input.equals("exit")) {
 				run = false;
@@ -100,6 +90,8 @@ public class ApplicationLoader {
 			
 		} while (run);
 		
+		keyboard.close();
+		
 	}
 	
 	public class CommandNotFound extends Exception {
@@ -117,6 +109,7 @@ public class ApplicationLoader {
 		addCommand("quote", new QuoteCommand(sba));
 		addCommand("sell", new SellCommand(sba));
 		addCommand("find", new FindCommand(sba));
+		addCommand("chart", new ChartCommand(sba));
 		addCommand("help", new HelpCommand(commandTable));
 	}
 

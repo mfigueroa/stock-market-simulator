@@ -90,12 +90,19 @@ public class MarkitAPI {
 		return quote;
 	}
 	
-	public Object getHistoricalData(String symbol) {
+	/**
+	 * Fetches the price, volume, and HLOC (high/low/open/close) for the given past days.
+	 * @param symbol The stock symbol
+	 * @param days The number of days in the past to fetch
+	 * @return
+	 */
+	public Object getHistoricalData(String symbol, int days) {
 		JSONObject obj = new JSONObject();
 		obj.put("Normalized", "false");
-		obj.put("NumberOfDays", "5");
+		obj.put("NumberOfDays", days);
 		obj.put("DataPeriod", "Day");
 		
+		// Open/close/high/low
 		JSONObject elem = new JSONObject();
 		elem.put("Symbol", symbol);
 		elem.put("Type", "price");
@@ -103,10 +110,20 @@ public class MarkitAPI {
 		params.add("ohlc");
 		elem.put("Params", params);
 		
+		// Volume
+		JSONObject elem2 = new JSONObject();
+		elem2.put("Symbol", symbol);
+		elem2.put("Type", "volume");
+		JSONArray params2 = new JSONArray();
+		params2.add("");
+		elem2.put("Params", params);
+		
 		JSONArray list = new JSONArray();
 		list.add(elem);
+		list.add(elem2);
 		
 		obj.put("Elements", list);
+		// TODO Throw exception when stock is not found
 		String url = URL_INTERDATA.replace("{JSON_STRING}", obj.toJSONString());
 		JSONObject resp = (JSONObject)getJSON(url);
 		

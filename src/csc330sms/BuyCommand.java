@@ -35,7 +35,6 @@ public class BuyCommand extends CommandFramework {
 		try {
 			Order result = sba.createStockOrder(symbol, quantity, new BigDecimal("0"), Order.Type.BUY_MARKET, Order.Duration.DAY_ORDER);
 			if (result.isComplete()) {
-				// TODO Display portfolio summary
 				System.out.println("Congratulations. Your order has been processed successfully.");
 				System.out.println("Your new account equity value: " + NumberFormat.getCurrencyInstance().format(sba.getEquityValue()));
 				System.out.println("Your new cash balance is: " + NumberFormat.getCurrencyInstance().format(sba.getAccountBalance()));
